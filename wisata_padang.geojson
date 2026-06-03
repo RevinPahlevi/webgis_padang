@@ -1,0 +1,200 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3503, -0.9380] },
+      "properties": { "nama": "Pantai Padang (Taplau)", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3701, -1.0182] },
+      "properties": { "nama": "Pantai Air Manis", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3725, -1.0203] },
+      "properties": { "nama": "Batu Malin Kundang", "jenis_wisata": "Wisata Budaya & Sejarah" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3992, -1.0451] },
+      "properties": { "nama": "Pantai Nirwana", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3204, -0.8405] },
+      "properties": { "nama": "Pantai Pasir Jambak", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.4101, -1.0805] },
+      "properties": { "nama": "Pantai Carolina", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.4150, -1.0850] },
+      "properties": { "nama": "Pantai Sako", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.4120, -1.0820] },
+      "properties": { "nama": "Pantai Carlos", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3615, -0.9632] },
+      "properties": { "nama": "Jembatan Siti Nurbaya", "jenis_wisata": "Landmark / Buatan" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3551, -0.9680] },
+      "properties": { "nama": "Gunung Padang (Taman Siti Nurbaya)", "jenis_wisata": "Wisata Alam & Sejarah" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.4105, -0.9501] },
+      "properties": { "nama": "Bukit Nobita", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3650, -0.9705] },
+      "properties": { "nama": "Bukit Gado-Gado", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3955, -1.0350] },
+      "properties": { "nama": "Bukit Lampu", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.4851, -0.9500] },
+      "properties": { "nama": "Sitinjau Lauik", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3602, -0.9603] },
+      "properties": { "nama": "Kota Tua Padang", "jenis_wisata": "Wisata Budaya & Sejarah" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3600, -0.9555] },
+      "properties": { "nama": "Museum Adityawarman", "jenis_wisata": "Wisata Budaya & Sejarah" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3705, -0.9401] },
+      "properties": { "nama": "Museum Rumah Kelahiran Bagindo Aziz Chan", "jenis_wisata": "Wisata Budaya & Sejarah" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3582, -0.9570] },
+      "properties": { "nama": "Gedung Balai Kota Lama Padang", "jenis_wisata": "Wisata Budaya & Sejarah" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3621, -0.9520] },
+      "properties": { "nama": "Monumen Gempa Padang", "jenis_wisata": "Wisata Sejarah" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3485, -0.9102] },
+      "properties": { "nama": "Monumen Merpati Perdamaian", "jenis_wisata": "Landmark / Buatan" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3630, -0.9235] },
+      "properties": { "nama": "Masjid Raya Syekh Ahmad Khatib Al-Minangkabawi", "jenis_wisata": "Wisata Religi" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3555, -0.9482] },
+      "properties": { "nama": "Masjid Al-Hakim Padang", "jenis_wisata": "Wisata Religi" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3752, -0.9501] },
+      "properties": { "nama": "Masjid Raya Gantiang", "jenis_wisata": "Wisata Religi" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3605, -0.9590] },
+      "properties": { "nama": "Klenteng See Hin Kiong", "jenis_wisata": "Wisata Religi" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.4150, -1.1205] },
+      "properties": { "nama": "Pulau Pasumpahan", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3551, -1.1250] },
+      "properties": { "nama": "Pulau Sikuai", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3952, -1.1601] },
+      "properties": { "nama": "Pulau Sirandah", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3805, -1.1450] },
+      "properties": { "nama": "Pulau Pagang", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3901, -1.1352] },
+      "properties": { "nama": "Pulau Pamutusan", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.4102, -1.1255] },
+      "properties": { "nama": "Pulau Suwarnadwipa", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3255, -1.0501] },
+      "properties": { "nama": "Pulau Toran", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3550, -0.9950] },
+      "properties": { "nama": "Pulau Pisang Gadang", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.4501, -0.9505] },
+      "properties": { "nama": "Lubuk Paraku", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.3805, -0.8401] },
+      "properties": { "nama": "Pemandian Alam Lubuk Minturun", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.4155, -0.9201] },
+      "properties": { "nama": "Air Terjun Sarasah", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.4350, -1.0855] },
+      "properties": { "nama": "Air Terjun Lubuk Hitam", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.4201, -0.9405] },
+      "properties": { "nama": "Air Terjun Guo", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.4250, -1.0901] },
+      "properties": { "nama": "Air Terjun Timbulun Bungus", "jenis_wisata": "Wisata Alam" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.4100, -1.2150] },
+      "properties": { "nama": "Kawasan Wisata Mandeh (Titik masuk via Bungus)", "jenis_wisata": "Wisata Alam" }
+    }
+  ]
+}

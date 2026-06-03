@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebGIS Destinasi Wisata Kota Padang</title>
+  <meta name="description" content="Sistem Informasi Geografis Destinasi Wisata Kota Padang - Temukan keindahan wisata alam, budaya, sejarah, dan religi di Kota Padang, Sumatera Barat." />
+  <meta property="og:title" content="WebGIS Destinasi Wisata Kota Padang" />
+  <meta property="og:description" content="Jelajahi destinasi wisata terbaik di Kota Padang secara interaktif melalui peta digital." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Leaflet Routing Machine CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="style.css" />
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="shortcut icon" href="logo.png" />
+</head>
+<body>
+
+  <!-- ===================== SPLASH SCREEN ===================== -->
+  <div id="splash-screen">
+    <div class="splash-content">
+      <div class="splash-logo">
+        <div class="splash-icon">
+          <img src="logo.png" alt="Logo WebGIS Padang" style="width:100%;height:100%;object-fit:contain;border-radius:16px;" />
+        </div>
+        <div class="splash-brand">
+          <span class="splash-title">WebGIS</span>
+          <span class="splash-subtitle">Kota Padang</span>
+        </div>
+      </div>
+      <div class="splash-tagline">Destinasi Wisata Sumatera Barat</div>
+      <div class="splash-loader">
+        <div class="loader-bar"></div>
+      </div>
+    </div>
+    <div class="splash-bg-pattern"></div>
+  </div>
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-icon"><img src="logo.png" alt="Logo" style="width:100%;height:100%;object-fit:contain;border-radius:8px;" /></div>
+        <div class="logo-text">
+          <span class="logo-main">WebGIS</span>
+          <span class="logo-sub">Padang</span>
+        </div>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+    </div>
+
+    <!-- Search -->
+    <div class="sidebar-section">
+      <div class="search-box">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="searchInput" placeholder="Cari destinasi wisata..." autocomplete="off" />
+        <button class="search-clear" id="searchClear" aria-label="Clear search"><i class="fas fa-times"></i></button>
+      </div>
+    </div>
+
+    <!-- Filter Kategori -->
+    <div class="sidebar-section">
+      <h3 class="section-label"><i class="fas fa-filter"></i> Filter Kategori</h3>
+      <div class="filter-chips" id="filterChips">
+        <button class="chip active" data-category="all" id="chip-all">
+          <span class="chip-dot" style="background:#76ABAE"></span> Semua
+        </button>
+        <button class="chip" data-category="Wisata Alam" id="chip-alam">
+          <span class="chip-dot" style="background:#2e8b6e"></span> Wisata Alam
+        </button>
+        <button class="chip" data-category="Wisata Budaya & Sejarah" id="chip-budaya">
+          <span class="chip-dot" style="background:#c07a20"></span> Budaya & Sejarah
+        </button>
+        <button class="chip" data-category="Wisata Religi" id="chip-religi">
+          <span class="chip-dot" style="background:#7c6bbf"></span> Wisata Religi
+        </button>
+        <button class="chip" data-category="Landmark / Buatan" id="chip-landmark">
+          <span class="chip-dot" style="background:#FF5722"></span> Landmark
+        </button>
+        <button class="chip" data-category="Wisata Sejarah" id="chip-sejarah">
+          <span class="chip-dot" style="background:#c0426b"></span> Wisata Sejarah
+        </button>
+        <button class="chip" data-category="Wisata Alam & Sejarah" id="chip-alam-sejarah">
+          <span class="chip-dot" style="background:#1e8fa8"></span> Alam & Sejarah
+        </button>
+      </div>
+    </div>
+
+    <!-- Statistik -->
+    <div class="sidebar-section">
+      <h3 class="section-label"><i class="fas fa-chart-bar"></i> Statistik</h3>
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card" id="stat-all">
+          <div class="stat-value" id="statTotal">-</div>
+          <div class="stat-label">Total Destinasi</div>
+        </div>
+        <div class="stat-card stat-alam" id="stat-alam">
+          <div class="stat-value" id="statAlam">-</div>
+          <div class="stat-label">Wisata Alam</div>
+        </div>
+        <div class="stat-card stat-budaya" id="stat-budaya">
+          <div class="stat-value" id="statBudaya">-</div>
+          <div class="stat-label">Budaya & Sejarah</div>
+        </div>
+        <div class="stat-card stat-religi" id="stat-religi">
+          <div class="stat-value" id="statReligi">-</div>
+          <div class="stat-label">Wisata Religi</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rekomendasi Untukmu -->
+    <div class="sidebar-section" id="recommendationSection" style="display:none; background: #eef7f8; border-radius: 8px; padding: 10px; margin-bottom: 15px;">
+      <h3 class="section-label" style="color: #2e8b6e;"><i class="fas fa-star"></i> Rekomendasi Untukmu</h3>
+      <div class="destination-list" id="recommendationList" style="max-height: 250px; overflow-y: auto;">
+        <div class="list-loading"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>
+      </div>
+    </div>
+
+    <!-- Daftar Destinasi -->
+    <div class="sidebar-section sidebar-list-section">
+      <h3 class="section-label"><i class="fas fa-list"></i> Daftar Destinasi <span class="count-badge" id="listCount">0</span></h3>
+      <div class="destination-list" id="destinationList">
+        <div class="list-loading">
+          <i class="fas fa-spinner fa-spin"></i> Memuat data...
+        </div>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="sidebar-section">
+      <h3 class="section-label"><i class="fas fa-map-legend"></i> Legenda</h3>
+      <div class="legend-items">
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#2e8b6e"></span> Wisata Alam
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#c07a20"></span> Budaya & Sejarah
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#7c6bbf"></span> Wisata Religi
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#FF5722"></span> Landmark / Buatan
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#c0426b"></span> Wisata Sejarah
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#1e8fa8"></span> Alam & Sejarah
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===================== MAIN CONTENT ===================== -->
+  <main class="main-content" id="mainContent">
+
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="topbar-title">
+          <img src="logo.png" alt="Logo" style="width:24px;height:24px;object-fit:contain;border-radius:4px;flex-shrink:0;" />
+          <span>Destinasi Wisata Kota Padang</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-info" id="topbarInfo">
+          <i class="fas fa-circle-notch fa-spin"></i> Memuat...
+        </div>
+        <div class="view-toggle">
+          <button class="view-btn active" id="viewMap" aria-label="Map view" title="Tampilan Peta">
+            <i class="fas fa-map"></i>
+          </button>
+          <button class="view-btn" id="viewSplit" aria-label="Split view" title="Tampilan Kartu">
+            <i class="fas fa-th-large"></i>
+          </button>
+        </div>
+        <button class="btn-about" id="btnAbout">
+          <i class="fas fa-info-circle"></i> Tentang
+        </button>
+      </div>
+    </header>
+
+    <!-- Map Container -->
+    <div class="map-wrapper" id="mapWrapper">
+      <div id="map"></div>
+
+      <!-- Map Controls -->
+      <div class="map-controls">
+        <button class="ctrl-btn" id="btnLocate" title="Deteksi Lokasi Saya">
+          <i class="fas fa-crosshairs"></i>
+        </button>
+        <button class="ctrl-btn" id="btnFitAll" title="Tampilkan Semua">
+          <i class="fas fa-expand-arrows-alt"></i>
+        </button>
+        <button class="ctrl-btn" id="btnLayerToggle" title="Ganti Layer Peta">
+          <i class="fas fa-layer-group"></i>
+        </button>
+        <button class="ctrl-btn ctrl-btn-danger" id="btnClearRoute" title="Hapus Rute" style="display:none">
+          <i class="fas fa-times-circle"></i>
+        </button>
+      </div>
+
+      <!-- Route Info Card -->
+      <div class="route-info-card" id="routeInfoCard" style="display:none">
+        <div class="route-info-header">
+          <i class="fas fa-route" style="color:#76ABAE"></i>
+          <span>Informasi Rute</span>
+          <button class="route-info-close" id="routeInfoClose"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="route-info-body">
+          <div class="route-stat">
+            <i class="fas fa-road" style="color:#2e8b6e"></i>
+            <div>
+              <div class="route-stat-val" id="routeDistance">-</div>
+              <div class="route-stat-label">Jarak</div>
+            </div>
+          </div>
+          <div class="route-stat">
+            <i class="fas fa-clock" style="color:#c07a20"></i>
+            <div>
+              <div class="route-stat-val" id="routeTime">-</div>
+              <div class="route-stat-label">Estimasi Waktu</div>
+            </div>
+          </div>
+        </div>
+        <div class="route-dest" id="routeDest"></div>
+      </div>
+
+      <!-- Layer Selector -->
+      <div class="layer-selector" id="layerSelector">
+        <div class="layer-option active" data-layer="street" id="layer-street">
+          <div class="layer-thumb layer-street-thumb"></div>
+          <span>Street Map</span>
+        </div>
+        <div class="layer-option" data-layer="satellite" id="layer-satellite">
+          <div class="layer-thumb layer-satellite-thumb"></div>
+          <span>Satellite</span>
+        </div>
+        <div class="layer-option" data-layer="terrain" id="layer-terrain">
+          <div class="layer-thumb layer-terrain-thumb"></div>
+          <span>Terrain</span>
+        </div>
+        <div class="layer-option" data-layer="dark" id="layer-dark">
+          <div class="layer-thumb layer-dark-thumb"></div>
+          <span>Dark Mode</span>
+        </div>
+      </div>
+
+      <!-- Map Counter Badge -->
+      <div class="map-counter" id="mapCounter">
+        <i class="fas fa-map-pin"></i>
+        <span id="mapCounterVal">0</span> destinasi
+      </div>
+    </div>
+
+    <!-- Card Grid View (hidden by default) -->
+    <div class="card-grid-container hidden" id="cardGridContainer">
+      <div class="card-grid" id="cardGrid"></div>
+    </div>
+
+  </main>
+
+  <!-- ===================== DETAIL OVERLAY ===================== -->
+  <div class="detail-overlay" id="detailOverlay"></div>
+
+  <!-- ===================== DETAIL PANEL ===================== -->
+  <div class="detail-panel" id="detailPanel">
+    <button class="detail-close" id="detailClose" aria-label="Close detail">
+      <i class="fas fa-times"></i>
+    </button>
+    <div class="detail-header">
+      <div class="detail-category-badge" id="detailCategory"></div>
+      <h2 class="detail-title" id="detailTitle"></h2>
+      <div class="detail-coords" id="detailCoords"></div>
+    </div>
+    <div class="detail-body">
+      <!-- Photo Gallery -->
+      <div class="detail-gallery" id="detailGallery"></div>
+
+      <div class="detail-icon-row" id="detailIconRow"></div>
+      <div class="detail-description" id="detailDescription"></div>
+
+      <!-- Route Button -->
+      <button class="detail-btn-route" id="detailRouteBtn">
+        <i class="fas fa-route"></i>
+        <span>Tampilkan Rute dari Lokasi Saya</span>
+      </button>
+      <div class="route-status" id="routeStatus"></div>
+
+      <!-- Laporan Button -->
+      <button class="detail-btn-route" id="btnBukaLaporan" style="background:#fff; color:#FF5722; border: 1px solid #FF5722; margin-top: 10px;">
+        <i class="fas fa-flag"></i>
+        <span>Laporkan Kesalahan Informasi</span>
+      </button>
+
+      <!-- Review Section -->
+      <div class="review-section" style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 15px;">
+        <h3 style="font-size: 16px; margin-bottom: 15px;"><i class="fas fa-comments"></i> Ulasan Pengunjung</h3>
+        
+        <!-- Review Form -->
+        <form id="reviewForm" style="margin-bottom: 20px; background: #f9f9f9; padding: 15px; border-radius: 8px;">
+          <div style="margin-bottom: 10px;">
+            <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">Rating Anda</label>
+            <div class="star-rating" id="starRatingContainer" style="color: #ddd; font-size: 20px; cursor: pointer;">
+              <i class="fas fa-star" data-rating="1"></i>
+              <i class="fas fa-star" data-rating="2"></i>
+              <i class="fas fa-star" data-rating="3"></i>
+              <i class="fas fa-star" data-rating="4"></i>
+              <i class="fas fa-star" data-rating="5"></i>
+            </div>
+            <input type="hidden" name="rating" id="reviewRatingInput" required>
+          </div>
+          <input type="text" name="nama_pengunjung" placeholder="Nama (Opsional)" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">
+          <textarea name="komentar" placeholder="Tuliskan pengalaman Anda..." style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; font-family: inherit;"></textarea>
+          <button type="submit" class="btn-primary" style="width: 100%; padding: 8px; border: none; border-radius: 4px; background: #76ABAE; color: white; cursor: pointer; font-weight: 500;">Kirim Ulasan</button>
+        </form>
+
+        <!-- Review List -->
+        <div id="reviewList" style="display: flex; flex-direction: column; gap: 15px;">
+          <div class="list-loading"><i class="fas fa-spinner fa-spin"></i> Memuat ulasan...</div>
+        </div>
+      </div>
+
+      <!-- Nearby Facilities -->
+      <div class="facilities-section">
+        <div class="facilities-header">
+          <i class="fas fa-map-marker-alt" style="color:#FF5722"></i>
+          <span>Fasilitas Umum Terdekat</span>
+          <span class="facilities-radius" id="facilitiesRadius">radius 1 km</span>
+        </div>
+        <div class="facilities-loading" id="facilitiesLoading" style="display:none">
+          <i class="fas fa-circle-notch fa-spin"></i> Mencari fasilitas...
+        </div>
+        <div class="facilities-error" id="facilitiesError" style="display:none">
+          <i class="fas fa-exclamation-triangle"></i> Gagal memuat fasilitas.
+        </div>
+        <div class="facilities-grid" id="facilitiesGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL ABOUT ===================== -->
+  <div class="modal-overlay" id="modalAbout">
+    <div class="modal-box">
+      <button class="modal-close" id="modalClose" aria-label="Close modal"><i class="fas fa-times"></i></button>
+      <div class="modal-header">
+        <div class="modal-icon"><img src="logo.png" alt="Logo WebGIS Padang" style="width:100%;height:100%;object-fit:contain;border-radius:10px;" /></div>
+        <h2>WebGIS Destinasi Wisata<br>Kota Padang</h2>
+        <p class="modal-tagline">Sistem Informasi Geografis Interaktif</p>
+      </div>
+      <div class="modal-body">
+        <div class="about-grid">
+          <div class="about-card">
+            <i class="fas fa-bullseye"></i>
+            <h4>Tujuan</h4>
+            <p>Menyediakan informasi geografis lengkap dan interaktif tentang destinasi wisata di Kota Padang, Sumatera Barat.</p>
+          </div>
+          <div class="about-card">
+            <i class="fas fa-database"></i>
+            <h4>Sumber Data</h4>
+            <p>Data spasial hasil digitasi menggunakan QGIS berdasarkan referensi penelitian dan survei lapangan.</p>
+          </div>
+          <div class="about-card">
+            <i class="fas fa-code"></i>
+            <h4>Teknologi</h4>
+            <p>Dibangun menggunakan Leaflet.js, Node.js/Express, PostgreSQL, dan GeoJSON untuk visualisasi peta interaktif.</p>
+          </div>
+          <div class="about-card">
+            <i class="fas fa-graduation-cap"></i>
+            <h4>Konteks</h4>
+            <p>Proyek WebGIS ini dikembangkan sebagai tugas akhir / skripsi di lingkungan akademis Universitas Andalas.</p>
+          </div>
+        </div>
+        <div class="about-stats-row">
+          <div class="about-stat"><span id="aboutTotal">38</span> Destinasi</div>
+          <div class="about-stat"><span>6</span> Kategori</div>
+          <div class="about-stat"><span>1</span> Kota</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL PREFERENSI ===================== -->
+  <div class="modal-overlay" id="modalPreferences">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-icon"><img src="logo.png" alt="Logo" style="width:100%;height:100%;object-fit:contain;border-radius:10px;" /></div>
+        <h2>Bantu Kami Mengenal Anda!</h2>
+        <p class="modal-tagline">Pilih kategori wisata yang paling Anda minati agar kami dapat memberikan rekomendasi terbaik.</p>
+      </div>
+      <div class="modal-body">
+        <form id="preferencesForm">
+          <div class="preferences-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+            <label class="pref-checkbox"><input type="checkbox" name="kategori" value="Wisata Alam"> Wisata Alam</label>
+            <label class="pref-checkbox"><input type="checkbox" name="kategori" value="Wisata Budaya & Sejarah"> Budaya & Sejarah</label>
+            <label class="pref-checkbox"><input type="checkbox" name="kategori" value="Wisata Religi"> Wisata Religi</label>
+            <label class="pref-checkbox"><input type="checkbox" name="kategori" value="Landmark / Buatan"> Landmark / Buatan</label>
+            <label class="pref-checkbox"><input type="checkbox" name="kategori" value="Wisata Sejarah"> Wisata Sejarah</label>
+            <label class="pref-checkbox"><input type="checkbox" name="kategori" value="Wisata Alam & Sejarah"> Alam & Sejarah</label>
+          </div>
+          <button type="submit" class="btn-primary" style="width:100%; margin-bottom: 10px; background: #76ABAE; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">Simpan Preferensi</button>
+          <button type="button" class="btn-secondary" id="btnSkipPreferences" style="width:100%; background: transparent; color: #666; padding: 12px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer;">Lewati</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL LAPORAN ===================== -->
+  <div class="modal-overlay" id="modalLaporan">
+    <div class="modal-box">
+      <button class="modal-close" id="modalLaporanClose" aria-label="Close modal"><i class="fas fa-times"></i></button>
+      <div class="modal-header">
+        <h2 style="font-size: 20px; color: #FF5722; display: flex; align-items: center; gap: 10px;"><i class="fas fa-flag"></i> Laporkan Masalah</h2>
+        <p class="modal-tagline">Bantu kami memperbarui data untuk <span id="laporanWisataNama" style="font-weight:bold;"></span></p>
+      </div>
+      <div class="modal-body">
+        <form id="laporanForm">
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Jenis Laporan</label>
+            <select name="jenis_laporan" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit;">
+              <option value="">-- Pilih Jenis Kesalahan --</option>
+              <option value="Informasi salah">Informasi Salah</option>
+              <option value="Destinasi tutup/tidak tersedia">Destinasi Tutup / Tidak Tersedia</option>
+              <option value="Foto tidak sesuai">Foto Tidak Sesuai</option>
+              <option value="Tambah informasi">Tambah Informasi</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Detail Laporan</label>
+            <textarea name="deskripsi" rows="3" placeholder="Jelaskan masalah secara detail..." required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; resize: vertical;"></textarea>
+          </div>
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Nama Anda (Opsional)</label>
+            <input type="text" name="pelapor_nama" placeholder="Nama Anda" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit;" />
+          </div>
+          <button type="submit" class="btn-primary" id="btnSubmitLaporan" style="width: 100%; background: #FF5722; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+            <i class="fas fa-paper-plane"></i> Kirim Laporan
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== PHOTO LIGHTBOX ===================== -->
+  <div class="photo-lightbox" id="photoLightbox" onclick="if(event.target===this)closeLightbox()">
+    <button class="lb-close" onclick="closeLightbox()"><i class="fas fa-times"></i></button>
+    <button class="lb-nav" id="lbPrev" onclick="lightboxNav(-1)"><i class="fas fa-chevron-left"></i></button>
+    <div class="lb-img-wrap">
+      <img id="lbImg" src="" alt="Foto destinasi" />
+    </div>
+    <button class="lb-nav" id="lbNext" onclick="lightboxNav(1)"><i class="fas fa-chevron-right"></i></button>
+    <div class="lb-counter" id="lbCounter">1 / 1</div>
+  </div>
+
+  <!-- ===================== TOAST ===================== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Leaflet Routing Machine -->
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+  <!-- Main JS -->
+  <script src="app.js"></script>
+</body>
+</html>
