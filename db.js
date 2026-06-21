@@ -1,10 +1,11 @@
-const { Pool } = require('pg'); // Pastikan library 'pg' di-import di paling atas
+const { Pool } = require('pg');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URL,
   ssl: {
-    rejectUnauthorized: false // Wajib diaktifkan agar bisa konek ke cloud Neon
+    require: true,             // <-- Ini yang diminta oleh Neon
+    rejectUnauthorized: false  // <-- Mencegah error sertifikat SSL di Vercel
   }
 });
 
-module.exports = pool; // Export pool agar bisa dipakai di server.js
+module.exports = pool;
