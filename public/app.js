@@ -2,8 +2,7 @@
 // WebGIS Destinasi Wisata Kota Padang
 // app.js - Location, Routing & Nearby Facilities
 // ============================================================
-
-const API_URL = 'http://localhost:3000/api/wisata';
+const API_URL = '/api/wisata';
 
 // ---- Category Config ----
 const CATEGORY_CONFIG = {
@@ -1284,7 +1283,7 @@ function bindUI() {
 // ============================================================
 // NOVELTY FEATURES (PREFERENCES, REVIEWS, REPORTS)
 // ============================================================
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = '/api';
 
 // 1. Session Management
 function getSessionId() {
