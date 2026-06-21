@@ -779,7 +779,12 @@ async function analyzeAndShowCongestion(fromLat, fromLng, toLat, toLng, profile)
 // ============================================================
 // NEARBY FACILITIES (Overpass API)
 // ============================================================
-const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
+// Multiple Overpass servers - dicoba secara berurutan jika satu gagal
+const OVERPASS_SERVERS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+];
 const FACILITY_RADIUS = 1000; // meter
 
 function haversineDistance(lat1, lng1, lat2, lng2) {
@@ -804,19 +809,44 @@ async function fetchNearbyFacilities(lat, lng) {
   // Build Overpass QL — union all queries in one request
   const allQueries = FACILITY_TYPES.flatMap(t => t.queries);
   const unionParts = allQueries.map(q => `${q}(around:${FACILITY_RADIUS},${lat},${lng});`).join('\n');
-  const query = `[out:json][timeout:20];\n(\n${unionParts}\n);\nout body;`;
+  const query = `[out:json][timeout:25];\n(\n${unionParts}\n);\nout body;`;
+  const reqBody = 'data=' + encodeURIComponent(query);
 
-  try {
-    const res  = await fetch(OVERPASS_URL, { method:'POST', body:'data=' + encodeURIComponent(query) });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    load.style.display = 'none';
-    renderFacilities(data.elements, lat, lng, grid);
-  } catch(e) {
-    console.error('Overpass error:', e);
-    load.style.display = 'none';
-    err.style.display  = 'flex';
+  // Coba setiap server Overpass secara berurutan (fallback)
+  let lastError = null;
+  for (const serverUrl of OVERPASS_SERVERS) {
+    try {
+      const controller = new AbortController();
+      const timeoutId  = setTimeout(() => controller.abort(), 28000); // 28s per server
+
+      console.log('[Fasilitas] Mencoba server:', serverUrl);
+      const res = await fetch(serverUrl, {
+        method:  'POST',
+        body:    reqBody,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        signal:  controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      load.style.display = 'none';
+      renderFacilities(data.elements, lat, lng, grid);
+      return; // Berhasil — keluar dari loop
+    } catch(e) {
+      lastError = e;
+      console.warn('[Fasilitas] Server gagal (' + serverUrl + '):', e.message);
+    }
   }
+
+  // Semua server gagal
+  console.error('[Fasilitas] Semua server Overpass gagal:', lastError);
+  load.style.display = 'none';
+  err.style.display  = 'flex';
+  err.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Gagal memuat fasilitas. ' +
+    '<button onclick="fetchNearbyFacilities(' + lat + ',' + lng + ')" ' +
+    'style="margin-left:8px;padding:3px 10px;border:1px solid #c0426b;background:transparent;border-radius:4px;cursor:pointer;font-size:11px;color:#c0426b;">' +
+    '<i class="fas fa-redo"></i> Coba Lagi</button>';
 }
 
 function matchFacilityType(tags) {
