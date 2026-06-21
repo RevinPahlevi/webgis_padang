@@ -239,6 +239,10 @@ let activeDestLat       = null;
 let activeDestLng       = null;
 let activeDestName      = '';
 let routeActive         = false;
+let currentTransportMode = 'car'; // 'car', 'motorcycle', 'walking'
+let currentRouteFrom    = null;
+let currentRouteTo      = null;
+let currentRouteName    = '';
 let facilityMarkersGroup = null; // L.LayerGroup for facility map markers
 
 // ---- Tile Layers ----
@@ -477,41 +481,111 @@ function locateUser(callback) {
 // ============================================================
 // ROUTING
 // ============================================================
+
+// Transport mode config
+const TRANSPORT_MODES = [
+  {
+    key:     'car',
+    label:   'Mobil',
+    icon:    'fa-car',
+    emoji:   '🚗',
+    osrm:    'driving',
+  },
+  {
+    key:     'motorcycle',
+    label:   'Motor',
+    icon:    'fa-motorcycle',
+    emoji:   '🛵',
+    osrm:    'driving',
+  },
+  {
+    key:     'walking',
+    label:   'Jalan Kaki',
+    icon:    'fa-person-walking',
+    emoji:   '🚶',
+    osrm:    'foot',
+  },
+];
+
+function getTransportMode(key) {
+  return TRANSPORT_MODES.find(m => m.key === key) || TRANSPORT_MODES[0];
+}
+
 function buildRoute(destLat, destLng, destName) {
   if (!userLatLng) { locateUser((lat,lng) => setTimeout(() => drawRoute(lat,lng,destLat,destLng,destName), 800)); return; }
   drawRoute(userLatLng.lat, userLatLng.lng, destLat, destLng, destName);
 }
 
 function drawRoute(fromLat, fromLng, toLat, toLng, destName) {
+  currentRouteFrom = { lat: fromLat, lng: fromLng };
+  currentRouteTo   = { lat: toLat,   lng: toLng };
+  currentRouteName = destName;
   clearRoute();
-  const routeBtn = document.getElementById('detailRouteBtn');
+  const routeBtn    = document.getElementById('detailRouteBtn');
   const routeStatus = document.getElementById('routeStatus');
   routeBtn.classList.add('loading');
   routeStatus.textContent = '⏳ Menghitung rute...';
   routeStatus.className = 'route-status';
+
+  const mode = getTransportMode(currentTransportMode);
+
   try {
     routingControl = L.Routing.control({
       waypoints: [L.latLng(fromLat,fromLng), L.latLng(toLat,toLng)],
       routeWhileDragging:false, showAlternatives:false, fitSelectedRoutes:true,
-      lineOptions: { styles:[{color:'#76ABAE',weight:5,opacity:0.9},{color:'#5a9094',weight:3,opacity:0.5}], extendToWaypoints:true, missingRouteTolerance:0 },
+      lineOptions: {
+        styles:[
+          {color:'#8A5F41',weight:6,opacity:0.9},
+          {color:'#CCD67F',weight:3,opacity:0.6}
+        ],
+        extendToWaypoints:true, missingRouteTolerance:0
+      },
       createMarker: () => null,
-      router: L.Routing.osrmv1({ serviceUrl:'https://router.project-osrm.org/route/v1', profile:'driving' })
+      router: L.Routing.osrmv1({
+        serviceUrl:'https://router.project-osrm.org/route/v1',
+        profile: mode.osrm
+      })
     })
     .on('routesfound', (e) => {
       const { totalDistance, totalTime } = e.routes[0].summary;
-      const distKm  = (totalDistance/1000).toFixed(1);
-      const mins    = Math.ceil(totalTime/60);
-      const timeStr = mins >= 60 ? `${Math.floor(mins/60)} jam ${mins%60} mnt` : `${mins} mnt`;
+      const distKm = (totalDistance/1000).toFixed(1);
+
+      // ---- Hitung waktu per moda ----
+      // Mobil: baseline dari OSRM driving
+      const carMins = Math.ceil(totalTime / 60);
+      // Motor: lebih cepat ~25% dari mobil (bisa selap-selip)
+      const motoMins = Math.ceil(carMins * 0.75);
+      // Jalan kaki: 5 km/h rata-rata
+      const walkingMins = Math.ceil((totalDistance / 1000 / 5) * 60);
+
+      const allTimes = {
+        car:        formatTime(carMins),
+        motorcycle: formatTime(motoMins),
+        walking:    formatTime(walkingMins)
+      };
+
+      // Tampilkan waktu moda yang dipilih
+      const selectedTime = allTimes[currentTransportMode];
       document.getElementById('routeDistance').textContent = distKm + ' km';
-      document.getElementById('routeTime').textContent     = timeStr;
-      document.getElementById('routeDest').innerHTML       = `<i class="fas fa-map-pin"></i> Menuju: ${destName}`;
+      document.getElementById('routeTime').textContent     = selectedTime;
+
+      renderTransportPills(allTimes, distKm);
+
+      document.getElementById('routeDest').innerHTML = `<i class="fas fa-map-pin"></i> Menuju: ${destName}`;
       document.getElementById('routeInfoCard').style.display = 'block';
       document.getElementById('btnClearRoute').style.display  = 'flex';
       routeBtn.classList.remove('loading'); routeBtn.classList.add('active');
       routeBtn.innerHTML = '<i class="fas fa-check-circle"></i><span>Rute Aktif — Klik untuk Hapus</span>';
-      routeStatus.textContent = `✅ ${distKm} km · ${timeStr} berkendara`;
+
+      const modeEmoji = getTransportMode(currentTransportMode).emoji;
+      routeStatus.textContent = `✅ ${distKm} km · ${selectedTime} ${modeEmoji}`;
       routeStatus.className   = 'route-status success';
       routeActive = true;
+
+      // ---- Deteksi kemacetan di jalur ----
+      if (mode.osrm === 'driving') {
+        analyzeAndShowCongestion(fromLat, fromLng, toLat, toLng, mode.osrm);
+      }
     })
     .on('routingerror', () => {
       routeBtn.classList.remove('loading');
@@ -527,8 +601,63 @@ function drawRoute(fromLat, fromLng, toLat, toLng, destName) {
   }
 }
 
+function formatTime(mins) {
+  if (mins >= 60) {
+    const h = Math.floor(mins/60);
+    const m = mins % 60;
+    return m > 0 ? `${h} jam ${m} mnt` : `${h} jam`;
+  }
+  return `${mins} mnt`;
+}
+
+function renderTransportPills(allTimes, distKm) {
+  // Insert transport pills row into routeInfoCard if not exists
+  let pillsRow = document.getElementById('routeTransportPills');
+  if (!pillsRow) {
+    const body = document.querySelector('.route-info-body');
+    pillsRow = document.createElement('div');
+    pillsRow.id = 'routeTransportPills';
+    pillsRow.className = 'route-transport-pills';
+    body.after(pillsRow);
+  }
+
+  pillsRow.innerHTML = TRANSPORT_MODES.map(m => {
+    const isActive = m.key === currentTransportMode;
+    return `<button class="transport-pill ${isActive ? 'active' : ''}" onclick="switchTransport('${m.key}','${distKm}','${JSON.stringify(allTimes).replace(/"/g,'&quot;')}')">
+      <i class="fas ${m.icon}"></i> ${m.label}
+      <span style="font-size:10px;opacity:0.8;">·</span>
+      <span>${allTimes[m.key]}</span>
+    </button>`;
+  }).join('');
+}
+
+window.switchTransport = function(modeKey, distKm, allTimesJson) {
+  currentTransportMode = modeKey;
+  try {
+    const allTimes = JSON.parse(allTimesJson.replace(/&quot;/g,'"'));
+    const selectedTime = allTimes[modeKey];
+    document.getElementById('routeTime').textContent = selectedTime;
+    const modeEmoji = getTransportMode(modeKey).emoji;
+    const routeStatus = document.getElementById('routeStatus');
+    if (routeStatus && routeStatus.classList.contains('success')) {
+      routeStatus.textContent = `✅ ${distKm} km · ${selectedTime} ${modeEmoji}`;
+    }
+    // Re-render pills to update active state
+    renderTransportPills(allTimes, distKm);
+    // If walking, re-calculate route with walking profile
+    if (modeKey === 'walking' && currentRouteFrom && currentRouteTo) {
+      drawRoute(currentRouteFrom.lat, currentRouteFrom.lng, currentRouteTo.lat, currentRouteTo.lng, currentRouteName);
+    } else if ((modeKey === 'car' || modeKey === 'motorcycle') && currentRouteFrom && currentRouteTo) {
+      // For car/motorcycle same OSRM profile, just update display
+      drawRoute(currentRouteFrom.lat, currentRouteFrom.lng, currentRouteTo.lat, currentRouteTo.lng, currentRouteName);
+    }
+  } catch(e) { console.error('switchTransport error', e); }
+};
+
 function clearRoute() {
   if (routingControl) { try { map.removeControl(routingControl); } catch(e){} routingControl = null; }
+  // Hapus marker kemacetan
+  if (congestionLayer) { map.removeLayer(congestionLayer); congestionLayer = null; }
   document.getElementById('routeInfoCard').style.display = 'none';
   document.getElementById('btnClearRoute').style.display  = 'none';
   routeActive = false;
@@ -536,6 +665,116 @@ function clearRoute() {
   if (rb) { rb.classList.remove('loading','active'); rb.innerHTML = '<i class="fas fa-route"></i><span>Tampilkan Rute dari Lokasi Saya</span>'; }
   const rs = document.getElementById('routeStatus');
   if (rs) { rs.textContent=''; rs.className='route-status'; }
+  // Remove transport pills row
+  const pills = document.getElementById('routeTransportPills');
+  if (pills) pills.remove();
+}
+
+// ============================================================
+// DETEKSI KEMACETAN via OSRM Annotations
+// ============================================================
+let congestionLayer = null;
+
+async function analyzeAndShowCongestion(fromLat, fromLng, toLat, toLng, profile) {
+  try {
+    // Minta data annotasi kecepatan per segmen dari OSRM
+    const url = `https://router.project-osrm.org/route/v1/${profile}/` +
+      `${fromLng},${fromLat};${toLng},${toLat}` +
+      `?overview=full&geometries=geojson&annotations=speed,duration&steps=false`;
+
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.code !== 'Ok' || !data.routes[0]) return;
+
+    const route   = data.routes[0];
+    const coords  = route.geometry.coordinates;   // [lng, lat]
+    const speeds  = route.legs[0].annotation.speed; // m/s per segmen
+
+    // Ambang batas: di bawah 15 km/h dianggap berpotensi macet
+    const SLOW_MS = 15 / 3.6;
+    const MIN_ZONE_SEGMENTS = 2; // minimal 2 segmen berturutan agar ditandai
+
+    // Cari zona lambat (cluster segmen konsekutif yang lambat)
+    const slowZones = [];
+    let zoneStart = -1;
+
+    for (let i = 0; i < speeds.length; i++) {
+      const isSlow = speeds[i] >= 0 && speeds[i] < SLOW_MS;
+      if (isSlow && zoneStart === -1) {
+        zoneStart = i;
+      } else if (!isSlow && zoneStart !== -1) {
+        const len = i - zoneStart;
+        if (len >= MIN_ZONE_SEGMENTS) {
+          const midIdx  = Math.min(Math.floor((zoneStart + i) / 2), coords.length - 1);
+          const avgKmh  = speeds.slice(zoneStart, i).reduce((a,b)=>a+b,0) / len * 3.6;
+          slowZones.push({ lng: coords[midIdx][0], lat: coords[midIdx][1], kmh: avgKmh, len });
+        }
+        zoneStart = -1;
+      }
+    }
+    // Tangani jika zona lambat sampai akhir
+    if (zoneStart !== -1) {
+      const len = speeds.length - zoneStart;
+      if (len >= MIN_ZONE_SEGMENTS) {
+        const midIdx = Math.min(Math.floor((zoneStart + speeds.length) / 2), coords.length - 1);
+        const avgKmh = speeds.slice(zoneStart).reduce((a,b)=>a+b,0) / len * 3.6;
+        slowZones.push({ lng: coords[midIdx][0], lat: coords[midIdx][1], kmh: avgKmh, len });
+      }
+    }
+
+    if (slowZones.length === 0) return;
+
+    // Buat layer marker kemacetan
+    congestionLayer = L.layerGroup().addTo(map);
+
+    slowZones.forEach(zone => {
+      const severity = zone.kmh < 5 ? 'berat' : zone.kmh < 10 ? 'sedang' : 'ringan';
+      const color    = zone.kmh < 5 ? '#c0392b' : zone.kmh < 10 ? '#e67e22' : '#f39c12';
+      const icon = L.divIcon({
+        html: `<div style="
+          width: 30px; height: 30px; border-radius: 50%;
+          background: ${color};
+          border: 3px solid #fff;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.45);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 14px; line-height: 1;
+          position: relative;
+          animation: pulse-warn 1.5s ease-in-out infinite;
+        ">⚠️<div style="
+          position:absolute; bottom:-6px; left:50%; transform:translateX(-50%);
+          width:0; height:0;
+          border-left:5px solid transparent;
+          border-right:5px solid transparent;
+          border-top:6px solid ${color};
+        "></div></div>`,
+        className: '',
+        iconSize: [30, 36],
+        iconAnchor: [15, 36],
+        popupAnchor: [0, -38]
+      });
+
+      const marker = L.marker([zone.lat, zone.lng], { icon, zIndexOffset: 600 });
+      marker.bindPopup(`
+        <div class="popup-content">
+          <span class="popup-badge" style="background:rgba(${zone.kmh<5?'192,57,43':zone.kmh<10?'230,126,18':'243,156,18'},0.15);color:${color};border:1px solid ${color};">
+            ⚠️ Potensi Macet ${severity.toUpperCase()}
+          </span>
+          <div class="popup-title" style="font-size:13px;">Area Lalu Lintas Lambat</div>
+          <div class="popup-coords">⏱ Kecepatan rata-rata: ~${Math.round(zone.kmh)} km/h</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">
+            <i class="fas fa-info-circle"></i> Berdasarkan data tipikal jalan
+          </div>
+        </div>`, { closeButton: false, maxWidth: 220 }
+      );
+      congestionLayer.addLayer(marker);
+    });
+
+    showToast(`⚠️ ${slowZones.length} titik potensi macet terdeteksi di jalur`, 'info');
+
+  } catch(e) {
+    console.warn('Congestion analysis error:', e);
+  }
 }
 
 // ============================================================
@@ -712,9 +951,14 @@ window.routeToFacility = function(lat, lng, name, emoji) {
 
   const go = (fromLat, fromLng) => {
     clearRoute();
+    currentRouteFrom = { lat: fromLat, lng: fromLng };
+    currentRouteTo   = { lat, lng };
+    currentRouteName = `${emoji} ${name}`;
 
     document.getElementById('routeInfoCard').style.display = 'none';
     showToast(`Menghitung rute ke ${emoji} ${name}...`, 'info');
+
+    const mode = getTransportMode(currentTransportMode);
 
     try {
       routingControl = L.Routing.control({
@@ -724,8 +968,8 @@ window.routeToFacility = function(lat, lng, name, emoji) {
         fitSelectedRoutes: true,
         lineOptions: {
           styles: [
-            { color:'#f59e0b', weight:5, opacity:0.9 },
-            { color:'#fbbf24', weight:3, opacity:0.5 }
+            { color:'#A77F60', weight:5, opacity:0.9 },
+            { color:'#CCD67F', weight:3, opacity:0.6 }
           ],
           extendToWaypoints: true,
           missingRouteTolerance: 0
@@ -733,26 +977,35 @@ window.routeToFacility = function(lat, lng, name, emoji) {
         createMarker: () => null,
         router: L.Routing.osrmv1({
           serviceUrl: 'https://router.project-osrm.org/route/v1',
-          profile: 'driving'
+          profile: mode.osrm
         })
       })
       .on('routesfound', (e) => {
         const { totalDistance, totalTime } = e.routes[0].summary;
-        const distKm  = (totalDistance / 1000).toFixed(1);
-        const mins    = Math.ceil(totalTime / 60);
-        const timeStr = mins >= 60
-          ? `${Math.floor(mins/60)} jam ${mins%60} mnt`
-          : `${mins} mnt`;
+        const distKm = (totalDistance / 1000).toFixed(1);
+
+        const carMins     = Math.ceil(totalTime / 60);
+        const motoMins    = Math.ceil(carMins / 0.85);
+        const walkingMins = Math.ceil((totalDistance / 1000 / 5) * 60);
+        const allTimes = {
+          car:        formatTime(carMins),
+          motorcycle: formatTime(motoMins),
+          walking:    formatTime(walkingMins)
+        };
+        const selectedTime = allTimes[currentTransportMode];
 
         document.getElementById('routeDistance').textContent = distKm + ' km';
-        document.getElementById('routeTime').textContent     = timeStr;
+        document.getElementById('routeTime').textContent     = selectedTime;
         document.getElementById('routeDest').innerHTML =
-          `<i class="fas fa-map-pin" style="color:#f59e0b"></i> ${emoji} Menuju: ${name}`;
+          `<i class="fas fa-map-pin" style="color:var(--primary)"></i> ${emoji} Menuju: ${name}`;
         document.getElementById('routeInfoCard').style.display = 'block';
         document.getElementById('btnClearRoute').style.display  = 'flex';
 
+        renderTransportPills(allTimes, distKm);
+
         routeActive = true;
-        showToast(`✅ Rute ke ${name}: ${distKm} km (${timeStr})`, 'success');
+        const modeEmoji = getTransportMode(currentTransportMode).emoji;
+        showToast(`✅ Rute ke ${name}: ${distKm} km (${selectedTime} ${modeEmoji})`, 'success');
       })
       .on('routingerror', () => {
         showToast('Gagal menghitung rute ke fasilitas.', 'error');
