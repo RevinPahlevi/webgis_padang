@@ -1,10 +1,18 @@
 const { Pool } = require('pg');
 
+// Ambil URL dari Environment Variable Vercel
+let dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
+// Jurus Pamungkas: Paksa tambahkan parameter sslmode=require ke dalam URL jika belum ada
+if (dbUrl && !dbUrl.includes('sslmode=require')) {
+  // Jika URL sudah punya tanda tanya (?), tambahkan pakai '&', kalau belum pakai '?'
+  dbUrl += (dbUrl.includes('?') ? '&' : '?') + 'sslmode=require';
+}
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URL,
+  connectionString: dbUrl,
   ssl: {
-    require: true,             // <-- Ini yang diminta oleh Neon
-    rejectUnauthorized: false  // <-- Mencegah error sertifikat SSL di Vercel
+    rejectUnauthorized: false // Tetap biarkan ini untuk melewati validasi sertifikat lokal
   }
 });
 
