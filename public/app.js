@@ -246,7 +246,7 @@ let facilityMarkersGroup = null; // L.LayerGroup for facility map markers
 
 // ---- Tile Layers ----
 const TILE_LAYERS = {
-  street:    { url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',                                          attr:'©OpenStreetMap ©CartoDB' },
+  street:    { url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',                                         attr:'©OpenStreetMap ©CartoDB' },
   satellite: { url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',          attr:'©Esri' },
   terrain:   { url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',                                                       attr:'©OpenTopoMap' },
   dark:      { url:'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',                                     attr:'©OpenStreetMap ©CartoDB' },
